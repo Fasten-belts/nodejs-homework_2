@@ -1,11 +1,17 @@
+import fs from "fs/promises";
+import path from "path";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import HttpError from "../helpers/HttpError.js";
 import ctrlWrapper from "../decorators/ctrlWrapper.js";
 import "dotenv/config.js";
+import gravatar from "gravatar";
+import Jimp from "jimp";
 
 const { JWT_SECRET } = process.env;
+
+const avatarPath = path.resolve("public", "avatars");
 
 async function register(req, res) {
   const { email, password } = req.body;
@@ -14,14 +20,20 @@ async function register(req, res) {
     throw HttpError(409, `${email} already in use`);
   }
 
+  const avatarURL = gravatar.url(email);
   const hashPass = await bcrypt.hash(password, 10);
 
-  const newUser = await User.create({ ...req.body, password: hashPass });
+  const newUser = await User.create({
+    ...req.body,
+    avatarURL,
+    password: hashPass,
+  });
 
   res.status(201).json({
     user: {
       email: newUser.email,
       subscription: newUser.subscription,
+      avatarURL: newUser.avatarURL,
     },
   });
 }
@@ -74,10 +86,26 @@ async function subscription(req, res) {
   });
 }
 
+async function updateAvatar(req, res) {
+  const { _id } = req.user;
+  const { path: oldPath, filename } = req.file;
+  const newPath = path.join(avatarPath, filename);
+
+  await fs.rename(oldPath, newPath);
+  await Jimp.read(newPath).resize(250, 250).write(newPath);
+  const avatarURL = path.join("avatars", filename);
+  await User.findByIdAndUpdate(_id, { avatarURL });
+
+  res.status(201).json({
+    avatarURL,
+  });
+}
+
 export default {
   register: ctrlWrapper(register),
   login: ctrlWrapper(login),
   getCurrent: ctrlWrapper(getCurrent),
   logout: ctrlWrapper(logout),
   subscription: ctrlWrapper(subscription),
+  updateAvatar: ctrlWrapper(updateAvatar),
 };
