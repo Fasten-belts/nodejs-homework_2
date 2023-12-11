@@ -20,7 +20,11 @@ async function register(req, res) {
     throw HttpError(409, `${email} already in use`);
   }
 
-  const avatarURL = gravatar.url(email);
+  const avatarURL = gravatar.url(email, {
+    protocol: "https",
+    d: "monsterid",
+  });
+
   const hashPass = await bcrypt.hash(password, 10);
 
   const newUser = await User.create({
@@ -96,7 +100,7 @@ async function updateAvatar(req, res) {
   const avatarURL = path.join("avatars", filename);
   await User.findByIdAndUpdate(_id, { avatarURL });
 
-  res.status(201).json({
+  res.status(200).json({
     avatarURL,
   });
 }
