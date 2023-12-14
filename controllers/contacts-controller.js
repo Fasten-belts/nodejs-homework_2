@@ -13,9 +13,7 @@ async function getAll(req, res) {
     limit,
   }).populate("owner", "email");
 
-  const total = await Contact.countDocuments(filter);
-
-  res.status(200).json(result, total);
+  res.status(200).json(result);
 }
 
 async function getById(req, res) {
