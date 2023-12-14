@@ -5,7 +5,6 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import HttpError from "../helpers/HttpError.js";
 import ctrlWrapper from "../decorators/ctrlWrapper.js";
-import "dotenv/config.js";
 import gravatar from "gravatar";
 import Jimp from "jimp";
 
