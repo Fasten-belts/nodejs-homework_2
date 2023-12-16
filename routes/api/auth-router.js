@@ -8,6 +8,7 @@ import {
   userLoginSchema,
   userRegisterSchema,
   userSubscriptionSchema,
+  userEmailSchema,
 } from "../../utils/validation/userValidationSchemas.js";
 
 const authRouter = express.Router();
@@ -29,6 +30,15 @@ authRouter.post(
 authRouter.post("/logout", authenticate, authController.logout);
 
 authRouter.get("/current", authenticate, authController.getCurrent);
+
+authRouter.get("/verify/:verificationToken", authController.verify);
+
+authRouter.post(
+  "/verify",
+  isEmptyBody,
+  validateBody(userEmailSchema),
+  authController.resendVerify
+);
 
 authRouter.patch(
   "/subscription",
